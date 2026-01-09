@@ -1,8 +1,23 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
-import httpx
+
+from app.scanners.xss import scan_xss
+from app.scanners.sqli import scan_sqli
+from app.scanners.headers import scan_headers
+from app.core.risk import calculate_risk
+from app.core.report import generate_report
 
 app = FastAPI(title="Web Security Analyzer")
+
+# ✅ CORS (necesario para el frontend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # luego pon tu dominio
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ScanRequest(BaseModel):
     url: HttpUrl
@@ -10,37 +25,18 @@ class ScanRequest(BaseModel):
 @app.post("/scan")
 async def scan_website(data: ScanRequest):
     try:
-        async with httpx.AsyncClient(
-            timeout=8.0,
-            follow_redirects=True
-        ) as client:
-            response = await client.get(str(data.url))
+        xss = await scan_xss(str(data.url))
+        sqli = await scan_sqli(str(data.url))
+        headers = await scan_headers(str(data.url))
+        risk = calculate_risk(xss, sqli, headers)
 
-        headers = response.headers
-
-        issues = []
-
-        if "x-frame-options" not in headers:
-            issues.append("Missing X-Frame-Options header")
-
-        if "content-security-policy" not in headers:
-            issues.append("Missing Content-Security-Policy header")
-
-        if "strict-transport-security" not in headers:
-            issues.append("Missing HSTS header")
-
-        return {
-            "url": data.url,
-            "status_code": response.status_code,
-            "issues_found": len(issues),
-            "issues": issues
-        }
-
-    except httpx.ConnectTimeout:
-        raise HTTPException(status_code=408, detail="Connection timeout")
-
-    except httpx.RequestError as e:
-        raise HTTPException(status_code=400, detail=f"Request error: {str(e)}")
+        return generate_report(
+            url=str(data.url),
+            xss=xss,
+            sqli=sqli,
+            headers=headers,
+            risk=risk
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
