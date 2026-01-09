@@ -5,16 +5,17 @@ from app.scanners.sqli import scan_sqli
 from app.scanners.headers import scan_headers
 from app.services.risk import calculate_risk
 from app.services.report import generate_report
+import asyncio
 
 app = FastAPI(title="Web Security Analyzer")
 
 @app.post("/scan")
-def scan_website(data: ScanRequest):
-    xss = scan_xss(data.url)
-    sqli = scan_sqli(data.url)
-    headers = scan_headers(data.url)
+async def scan_website(data: ScanRequest):
+    xss, sqli, headers = await asyncio.gather(
+        scan_xss(data.url),
+        scan_sqli(data.url),
+        scan_headers(data.url)
+    )
 
     risk = calculate_risk(xss, sqli, headers)
-    report = generate_report(data.url, xss, sqli, headers, risk)
-
-    return report
+    return generate_report(data.url, xss, sqli, headers, risk)
