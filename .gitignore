@@ -1,0 +1,11 @@
+# Entorno virtual
+venv/
+.env
+# Python
+__pycache__/
+*.pyc
+# Windows
+Thumbs.db
+# IDE
+.vscode/
+.idea/
