@@ -3,6 +3,7 @@ def calculate_risk(xss, sqli, headers):
 
     if sqli.get("vulnerable"):
         score += 50
+
     if xss.get("vulnerable"):
         score += 30
 
@@ -14,4 +15,7 @@ def calculate_risk(xss, sqli, headers):
     elif score >= 40:
         level = "MEDIO"
 
-    return {"score": score, "level": level}
+    return {
+        "score": score,
+        "level": level
+    }
