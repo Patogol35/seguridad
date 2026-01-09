@@ -1,8 +1,18 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
 import httpx
 
 app = FastAPI(title="Web Security Analyzer")
+
+# ✅ CORS (permite conexión desde el frontend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # luego puedes poner tu dominio
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ScanRequest(BaseModel):
