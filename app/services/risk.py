@@ -8,14 +8,10 @@ def calculate_risk(xss, sqli, headers):
 
     score += len(headers.get("missing_headers", [])) * 5
 
+    level = "BAJO"
     if score >= 70:
         level = "ALTO"
     elif score >= 40:
         level = "MEDIO"
-    else:
-        level = "BAJO"
 
-    return {
-        "score": score,
-        "level": level
-    }
+    return {"score": score, "level": level}
