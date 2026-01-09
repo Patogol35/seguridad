@@ -1,5 +1,7 @@
 import requests
+
 SQL_PAYLOAD = "' OR '1'='1"
+
 def scan_sqli(url):
     try:
         response = requests.get(url, params={"id": SQL_PAYLOAD}, timeout=5)
@@ -9,5 +11,5 @@ def scan_sqli(url):
             "vulnerable": vulnerable,
             "payload": SQL_PAYLOAD
         }
-    except:
+    except requests.RequestException:
         return {"vulnerable": False}
