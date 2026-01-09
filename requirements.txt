@@ -1,5 +1,5 @@
 fastapi
-uvicorn
-requests
-beautifulsoup4
+uvicorn[standard]
+httpx
 pydantic
+python-dotenv
